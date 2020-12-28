@@ -1,0 +1,60 @@
+{{- $tendisplusSize := .Values.tendisplus.size | int }}
+{{- $clusterName := .Values.tendisplusClusterName }}
+{{- $pwd := .Values.password }}
+version: '3'
+services:
+  {{- range until $tendisplusSize }}
+  {{ $clusterName }}-master-{{ . }}:
+    {{- $port := ($.Values.tendisplus.portStart | add . ) }}
+    image: {{ $.Values.tendisplus.image }}
+    container_name: {{ $clusterName }}-master-{{ . }}
+    ports:
+      - "{{ $port }}:51002"
+    networks:
+      tendisplus-net:
+        ipv4_address: {{ $.Values.ipv4_addr}}.{{ (10 | add .) }}
+    environment:
+      - REDIS_PASSWORD={{ $pwd }}
+      - CLUSTER=yes
+    volumes:
+      - "{{ $.Values.tendisplus.dataDir }}/{{ $port }}:/data1/tendis/51002"
+    restart: on-failure:3
+  {{ $clusterName }}-slave-{{ . }}:
+    {{- $port := ($.Values.tendisplus.portStart | add . | add 20000 ) }}
+    image: {{ $.Values.tendisplus.image }}
+    container_name: {{ $clusterName }}-slave-{{ . }}
+    ports:
+      - "{{ $port }}:51002"
+    networks:
+      tendisplus-net:
+        ipv4_address: {{ $.Values.ipv4_addr}}.{{ (20 | add .) }}
+    environment:
+      - REDIS_PASSWORD={{ $pwd }}
+      - CLUSTER=yes
+    volumes:
+      - "{{ $.Values.tendisplus.dataDir }}/{{ $port }}:/data1/tendis/51002"
+    restart: on-failure:3
+  {{- end }}
+  build:
+    image: tencentdbforkv/build 
+    container_name: build
+    networks:
+      tendisplus-net:
+        ipv4_address: {{ $.Values.ipv4_addr}}.{{ (100 | add .) }}
+    depends_on:
+      {{- range until $tendisplusSize }}
+      - {{ $clusterName }}-master-{{ . }}
+      - {{ $clusterName }}-slave-{{ . }}
+      {{- end }}
+    environment:
+      - PASSWORD={{ $pwd }}
+      - IP={{ $.Values.ipv4_addr }}
+      - SIZE={{ $tendisplusSize }}
+    restart: on-failure:3
+
+networks:
+  tendisplus-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: {{ $.Values.ipv4_addr }}.0/24

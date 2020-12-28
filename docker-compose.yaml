@@ -1,0 +1,115 @@
+---
+# Source: tendisplus/templates/tendisplus.yaml
+
+version: '3'
+services:
+  tendisplus-master-0:
+    image: tencentdbforkv/tendisplus:latest
+    container_name: tendisplus-master-0
+    ports:
+      - "30000:51002"
+    networks:
+      tendisplus-net:
+        ipv4_address: 192.168.98.10
+    environment:
+      - REDIS_PASSWORD=tendisplustest
+      - CLUSTER=yes
+    volumes:
+      - "/data/tmp/tendisplus/30000:/data1/tendis/51002"
+    restart: on-failure:3
+  tendisplus-slave-0:
+    image: tencentdbforkv/tendisplus:latest
+    container_name: tendisplus-slave-0
+    ports:
+      - "50000:51002"
+    networks:
+      tendisplus-net:
+        ipv4_address: 192.168.98.20
+    environment:
+      - REDIS_PASSWORD=tendisplustest
+      - CLUSTER=yes
+    volumes:
+      - "/data/tmp/tendisplus/50000:/data1/tendis/51002"
+    restart: on-failure:3
+  tendisplus-master-1:
+    image: tencentdbforkv/tendisplus:latest
+    container_name: tendisplus-master-1
+    ports:
+      - "30001:51002"
+    networks:
+      tendisplus-net:
+        ipv4_address: 192.168.98.11
+    environment:
+      - REDIS_PASSWORD=tendisplustest
+      - CLUSTER=yes
+    volumes:
+      - "/data/tmp/tendisplus/30001:/data1/tendis/51002"
+    restart: on-failure:3
+  tendisplus-slave-1:
+    image: tencentdbforkv/tendisplus:latest
+    container_name: tendisplus-slave-1
+    ports:
+      - "50001:51002"
+    networks:
+      tendisplus-net:
+        ipv4_address: 192.168.98.21
+    environment:
+      - REDIS_PASSWORD=tendisplustest
+      - CLUSTER=yes
+    volumes:
+      - "/data/tmp/tendisplus/50001:/data1/tendis/51002"
+    restart: on-failure:3
+  tendisplus-master-2:
+    image: tencentdbforkv/tendisplus:latest
+    container_name: tendisplus-master-2
+    ports:
+      - "30002:51002"
+    networks:
+      tendisplus-net:
+        ipv4_address: 192.168.98.12
+    environment:
+      - REDIS_PASSWORD=tendisplustest
+      - CLUSTER=yes
+    volumes:
+      - "/data/tmp/tendisplus/30002:/data1/tendis/51002"
+    restart: on-failure:3
+  tendisplus-slave-2:
+    image: tencentdbforkv/tendisplus:latest
+    container_name: tendisplus-slave-2
+    ports:
+      - "50002:51002"
+    networks:
+      tendisplus-net:
+        ipv4_address: 192.168.98.22
+    environment:
+      - REDIS_PASSWORD=tendisplustest
+      - CLUSTER=yes
+    volumes:
+      - "/data/tmp/tendisplus/50002:/data1/tendis/51002"
+    restart: on-failure:3
+  build:
+    image: tencentdbforkv/build 
+    container_name: build
+    networks:
+      tendisplus-net:
+        ipv4_address: 192.168.98.100
+    depends_on:
+      - tendisplus-master-0
+      - tendisplus-slave-0
+      - tendisplus-master-1
+      - tendisplus-slave-1
+      - tendisplus-master-2
+      - tendisplus-slave-2
+    environment:
+      - PASSWORD=tendisplustest
+      - IP=192.168.98
+      - SIZE=3
+    restart: on-failure:3
+
+networks:
+  tendisplus-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.98.0/24
+

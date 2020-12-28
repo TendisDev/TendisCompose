@@ -1,0 +1,9 @@
+tendisplusClusterName: tendisplus
+ipv4_addr: 192.168.98
+password: tendisplustest
+
+tendisplus:
+        image: tencentdbforkv/tendisplus:latest
+        size: 3
+        portStart: 30000
+        dataDir: /data/tmp/tendisplus
