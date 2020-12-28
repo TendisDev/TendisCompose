@@ -28,6 +28,8 @@ services:
     networks:
       tendisplus-net:
         ipv4_address: {{ $.Values.ipv4_addr}}.{{ (20 | add .) }}
+    depends_on:
+      - {{ $clusterName }}-master-{{ . }}
     environment:
       - REDIS_PASSWORD={{ $pwd }}
       - CLUSTER=yes
